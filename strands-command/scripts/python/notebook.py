@@ -65,7 +65,7 @@ from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 from strands import ToolContext, tool
-from strands_tools.utils import console_util
+import console_util
 
 
 @tool(context=True)

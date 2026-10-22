@@ -2,7 +2,7 @@ from rich.markup import escape
 from rich.panel import Panel
 from strands import tool
 from strands.types.tools import ToolContext
-from strands_tools.utils import console_util
+import console_util
 
 @tool(context=True)
 def handoff_to_user(message: str, tool_context: ToolContext) -> str:

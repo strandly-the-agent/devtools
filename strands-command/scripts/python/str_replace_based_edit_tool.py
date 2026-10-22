@@ -15,7 +15,7 @@ from typing import List, Optional
 from rich.markup import escape
 from rich.panel import Panel
 from strands import tool
-from strands_tools.utils import console_util
+import console_util
 
 console = console_util.create()
 

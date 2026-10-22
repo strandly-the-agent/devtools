@@ -18,9 +18,8 @@ from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.session import S3SessionManager
 from strands.models import BedrockModel, CacheConfig
 from strands.vended_plugins.context_offloader import ContextOffloader, S3Storage
+from strands.vended_tools import http_request, shell
 from botocore.config import Config
-
-from strands_tools import http_request, shell
 
 # Import local GitHub tools we need
 from github_tools import (
