@@ -59,9 +59,10 @@ STRANDS_BUILTIN_TOOLS = ["shell", "read", "write", "edit"]
 # nobody to ask here. The harness environment plugin is off (it would inject the untrusted
 # checkout's AGENTS.md as trusted context), so name the working directory ourselves.
 UNATTENDED_RUN_NOTE = (
-    "This is an unattended CI run: nobody can answer questions, and the GitHub actions your "
-    "instructions prescribe are pre-authorized. Call handoff_to_user only after you have posted "
-    "your output. Working directory: {cwd} (file tools take absolute paths)."
+    "This is an unattended CI run: no one is watching it live, so a question only reaches a human "
+    "if you post it to GitHub first. handoff_to_user ends the run; a later /strands command resumes "
+    "this same session with the answer. The GitHub actions your instructions prescribe are "
+    "pre-authorized. Working directory: {cwd} (file tools take absolute paths)."
 )
 
 # Default values for environment variables used only in this file
