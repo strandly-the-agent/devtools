@@ -55,6 +55,14 @@ STRANDS_REGION = "us-west-2"
 # Harness built-ins. web_fetch (needs a second summarizer model the consuming repo's role may not
 # allow), programmatic_tool_caller and subagent stay off.
 STRANDS_BUILTIN_TOOLS = ["shell", "read", "write", "edit"]
+# Appended to the SOP: the harness contract says to confirm before outward actions, but there is
+# nobody to ask here. The harness environment plugin is off (it would inject the untrusted
+# checkout's AGENTS.md as trusted context), so name the working directory ourselves.
+UNATTENDED_RUN_NOTE = (
+    "This is an unattended CI run: nobody can answer questions, and the GitHub actions your "
+    "instructions prescribe are pre-authorized. Call handoff_to_user only after you have posted "
+    "your output. Working directory: {cwd} (file tools take absolute paths)."
+)
 
 # Default values for environment variables used only in this file
 DEFAULT_SYSTEM_PROMPT = "You are an autonomous GitHub agent powered by Strands Agents SDK."
@@ -240,19 +248,22 @@ def _create_agent(
 
     One S3 storage backs both the session snapshots (``session/``) and the context manager's
     stash of offloaded tool results (``context/``), so a resumed run can still resolve the
-    references left in its conversation. (The old S3SessionManager is per-message and the SDK
-    rejects pairing it with a context manager.)
+    references left in its conversation. The old per-message S3SessionManager cannot do this:
+    it persists each message once, so a restore reloads the unreduced history and the
+    context manager's work is undone (newer SDKs reject the pairing outright).
     """
     storage = S3Storage(bucket=s3_bucket, prefix=s3_prefix)
     return create_harness(
         model=model,
         caching=False,  # reasoning and caching are configured on the model instance
-        instructions=system_prompt,
+        instructions=f"{system_prompt}\n\n{UNATTENDED_RUN_NOTE.format(cwd=os.getcwd())}",
         tools=tools,
         builtin_tools=STRANDS_BUILTIN_TOOLS,
         session=SnapshotSessionManager(session_id, storage=storage, save_latest_on="message"),
         storage=storage,
-        # The checkout is an untrusted, throwaway workspace: no skills or memory from it.
+        # The checkout is untrusted and throwaway: no skills, memory, or environment context
+        # from it, and no todo_write competing with the notebook the SOPs mandate.
+        builtin_plugins=[],
         skills=False,
         memory=False,
         **({"trace_attributes": trace_attributes} if trace_attributes else {}),

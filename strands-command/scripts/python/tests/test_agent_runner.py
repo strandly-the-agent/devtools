@@ -79,11 +79,14 @@ def test_create_agent_wires_harness_defaults_for_ci(s3):
 
     assert agent.model is model
     assert agent.system_prompt.startswith(HARNESS_CONTRACT)
-    assert agent.system_prompt.endswith("SOP TEXT")
+    assert "\n\nSOP TEXT\n\n" in agent.system_prompt
+    assert f"Working directory: {os.getcwd()}" in agent.system_prompt
     assert agent.trace_attributes == {"session.id": "x"}
     # Harness built-ins replace the local file editor; GitHub tools and the mode denylist still apply.
     assert {"shell", "read", "write", "edit", "retrieve_context", "http_request", "get_pr_files"} <= set(agent.tool_names)
-    assert {"create_issue", "create_pull_request", "web_fetch", "subagent"}.isdisjoint(agent.tool_names)
+    assert {"create_issue", "create_pull_request", "web_fetch", "subagent", "todo_write"}.isdisjoint(agent.tool_names)
+    # Nothing from the untrusted checkout is loaded or injected (no skills, memory, or environment plugin).
+    assert not any(name.startswith("strands:environment") for name in agent._plugin_registry._plugins)
     # The old plan's failure mode: a context manager paired with a per-message session manager.
     assert agent.context_manager is not None
     assert isinstance(agent._session_manager, SnapshotSessionManager)
